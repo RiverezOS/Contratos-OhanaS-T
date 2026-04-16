@@ -1,0 +1,148 @@
+<img src="assets/logo.png" style="width:80px; margin-bottom:10px;">
+<h1>Generador de Contratos</h1>
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Contratos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2c2c54);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+```
+.container {
+  background: #2f2f4f;
+  padding: 30px;
+  border-radius: 15px;
+  width: 350px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #00c896;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #00a67d;
+}
+
+.footer {
+  margin-top: 15px;
+  font-size: 12px;
+  color: #bbb;
+}
+```
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>📄 Generador de Contratos</h1>
+
+  <input type="text" id="nombre" placeholder="Nombre del cliente">
+  <input type="text" id="servicio" placeholder="Servicio">
+  <input type="date" id="fechaEvento" placeholder="Fecha del evento">
+  <input type="text" id="lugarEvento" placeholder="Lugar del evento">
+  <input type="number" id="precio" placeholder="Precio">
+  <input id="anticipo" placeholder="Anticipo (MXN)" />
+
+<button onclick="generarContrato()">Generar contrato</button>
+
+  <div class="footer">
+    Sistema automático de contratos
+  </div>
+</div>
+
+<script>
+async function generarContrato() {
+
+  console.log("CLICK funcionando");
+
+  const nombre = document.getElementById("nombre").value;
+  const servicio = document.getElementById("servicio").value;
+  const fechaEvento = document.getElementById("fechaEvento").value;
+  const lugarEvento = document.getElementById("lugarEvento").value;
+  const precio = document.getElementById("precio").value;
+  const anticipo = document.getElementById("anticipo").value;
+
+  console.log({ nombre, servicio, fechaEvento, lugarEvento, precio, anticipo });
+
+  if (!nombre || !servicio || !fechaEvento || !lugarEvento || !precio || !anticipo) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+const response = await fetch("http://localhost:3000/generate", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    nombre,
+    servicio,
+    fechaEvento,
+    lugarEvento,
+    precio,
+    anticipo
+  })
+});
+
+if (!response.ok) {
+  alert("Error al generar el contrato");
+  return;
+}
+
+const blob = await response.blob();
+const url = window.URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+a.href = url;
+
+const nombreArchivo = "Contrato_" + nombre.replace(/\s+/g, "_") + ".pdf";
+
+a.download = nombreArchivo;
+
+document.body.appendChild(a);
+a.click();
+a.remove();
+}
+</script>
+
+</body>
+</html>
