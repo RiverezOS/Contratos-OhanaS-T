@@ -1,11 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const PDFDocument = require("pdfkit");
+const path = require("path");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.post("/generate", (req, res) => {
 
