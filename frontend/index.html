@@ -1,148 +1,289 @@
-<img src="assets/logo.png" style="width:80px; margin-bottom:10px;">
-<h1>Generador de Contratos</h1>
-
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Generador de Contratos</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Contratos | Ohana Snacks & Troles</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-```
-.container {
-  background: #2f2f4f;
-  padding: 30px;
-  border-radius: 15px;
-  width: 350px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  text-align: center;
-}
+        body {
+            background: radial-gradient(circle at top, #1c1c22 0%, #0a0a0d 100%);
+            color: #f5f5f7;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+        }
 
-h1 {
-  margin-bottom: 20px;
-  font-size: 22px;
-}
+        .container {
+            background: #141418;
+            width: 100%;
+            max-width: 420px;
+            padding: 32px 24px;
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.28);
+            text-align: center;
+        }
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 8px;
-  outline: none;
-}
+        .header {
+            margin-bottom: 22px;
+        }
 
-button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  background: #00c896;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
-}
+        .logo {
+            width: 85px;
+            height: auto;
+            margin-bottom: 12px;
+            border-radius: 50%;
+            border: 2px solid rgba(212, 175, 55, 0.45);
+            padding: 3px;
+            background: #0d0d10;
+        }
 
-button:hover {
-  background: #00a67d;
-}
+        .brand-subtitle {
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #d4af37;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
 
-.footer {
-  margin-top: 15px;
-  font-size: 12px;
-  color: #bbb;
-}
-```
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
 
-  </style>
+        .form-group {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #c5a880;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0d0d11;
+            border: 1.5px solid #2e2b24;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            border-color: #d4af37;
+            background: #08080a;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+        }
+
+        input::placeholder {
+            color: #55524b;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Indicador en tiempo real del saldo */
+        .balance-card {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px dashed rgba(212, 175, 55, 0.35);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin: 18px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .balance-label {
+            color: #a89f91;
+        }
+
+        .balance-amount {
+            color: #ffd700;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Botón dorado metálico */
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa820a 100%);
+            border: none;
+            border-radius: 10px;
+            color: #121214;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(212, 175, 55, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 11px;
+            color: #706a5e;
+            letter-spacing: 0.5px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
-  <h1>📄 Generador de Contratos</h1>
+    <div class="container">
+        <div class="header">
+            <img src="assets/logo.png" alt="Ohana Snacks & Troles" class="logo">
+            <div class="brand-subtitle">Ohana Snacks & Troles</div>
+            <h1>Generador de Contratos</h1>
+        </div>
 
-  <input type="text" id="nombre" placeholder="Nombre del cliente">
-  <input type="text" id="servicio" placeholder="Servicio">
-  <input type="date" id="fechaEvento" placeholder="Fecha del evento">
-  <input type="text" id="lugarEvento" placeholder="Lugar del evento">
-  <input type="number" id="precio" placeholder="Precio">
-  <input id="anticipo" placeholder="Anticipo (MXN)" />
+        <form id="contractForm" onsubmit="event.preventDefault(); generarContrato();">
+            <div class="form-group">
+                <label for="nombre">Nombre del cliente</label>
+                <input type="text" id="nombre" placeholder="Nombre completo" required>
+            </div>
 
-<button type="button" onclick="generarContrato()">Generar contrato</button>
+            <div class="form-group">
+                <label for="servicio">Servicio / Paquete</label>
+                <input type="text" id="servicio" placeholder="Ej. 70 snacks (10 vasos personalizados)" required>
+            </div>
 
-  <div class="footer">
-    Sistema automático de contratos
-  </div>
-</div>
+            <div class="form-group">
+                <label for="fechaEvento">Fecha del evento</label>
+                <input type="date" id="fechaEvento" required>
+            </div>
 
-<script>
-async function generarContrato() {
+            <div class="form-group">
+                <label for="lugarEvento">Lugar y hora del evento</label>
+                <input type="text" id="lugarEvento" placeholder="Ej. Salón Kids Zone - 10:50 am" required>
+            </div>
 
-  console.log("CLICK funcionando");
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="precio">Precio total (\$)</label>
+                    <input type="number" id="precio" placeholder="2800" min="0" step="any" oninput="calcularSaldo()" required>
+                </div>
+                <div class="form-group">
+                    <label for="anticipo">Anticipo (\$)</label>
+                    <input type="number" id="anticipo" placeholder="1000" min="0" step="any" oninput="calcularSaldo()" required>
+                </div>
+            </div>
 
-  const nombre = document.getElementById("nombre").value;
-  const servicio = document.getElementById("servicio").value;
-  const fechaEvento = document.getElementById("fechaEvento").value;
-  const lugarEvento = document.getElementById("lugarEvento").value;
-  const precio = document.getElementById("precio").value;
-  const anticipo = document.getElementById("anticipo").value;
+            <div class="balance-card">
+                <span class="balance-label">Pendiente por liquidar:</span>
+                <span class="balance-amount" id="saldoText">\$0.00 MXN</span>
+            </div>
 
-  console.log({ nombre, servicio, fechaEvento, lugarEvento, precio, anticipo });
+            <button type="submit" id="btnGenerar">Generar contrato</button>
+        </form>
 
-  if (!nombre || !servicio || !fechaEvento || !lugarEvento || !precio || !anticipo) {
-    alert("Completa todos los campos");
-    return;
-  }
+        <div class="footer">Sistema automático de contratos</div>
+    </div>
 
-const response = await fetch("/generate", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    nombre,
-    servicio,
-    fechaEvento,
-    lugarEvento,
-    precio,
-    anticipo
-  })
-});
+    <script>
+        function calcularSaldo() {
+            const precio = parseFloat(document.getElementById("precio").value) || 0;
+            const anticipo = parseFloat(document.getElementById("anticipo").value) || 0;
+            const saldo = Math.max(0, precio - anticipo);
+            document.getElementById("saldoText").textContent = "\$" + saldo.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " MXN";
+        }
 
-if (!response.ok) {
-  alert("Error al generar el contrato");
-  return;
-}
+        async function generarContrato() {
+            const btn = document.getElementById("btnGenerar");
+            const nombre = document.getElementById("nombre").value.trim();
+            const servicio = document.getElementById("servicio").value.trim();
+            const fechaEvento = document.getElementById("fechaEvento").value;
+            const lugarEvento = document.getElementById("lugarEvento").value.trim();
+            const precio = document.getElementById("precio").value.trim();
+            const anticipo = document.getElementById("anticipo").value.trim();
 
-const blob = await response.blob();
-const url = window.URL.createObjectURL(blob);
+            if (!nombre || !servicio || !fechaEvento || !lugarEvento || !precio || !anticipo) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
 
-const a = document.createElement("a");
-a.href = url;
+            btn.disabled = true;
+            btn.textContent = "Generando contrato...";
 
-const nombreArchivo = "Contrato_" + nombre.replace(/\s+/g, "_") + ".pdf";
+            try {
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        nombre,
+                        servicio,
+                        fechaEvento,
+                        lugarEvento,
+                        precio,
+                        anticipo
+                    })
+                });
 
-a.download = nombreArchivo;
+                if (!response.ok) {
+                    throw new Error("Error al generar el contrato");
+                }
 
-document.body.appendChild(a);
-a.click();
-a.remove();
-}
-</script>
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
 
+                const nombreLimpio = nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
+                a.download = `Contrato_${nombreLimpio}.pdf`;
+
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error(err);
+                alert("Hubo un error al generar el contrato. Revisa la conexión o el servidor.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Generar contrato";
+            }
+        }
+    </script>
 </body>
 </html>
