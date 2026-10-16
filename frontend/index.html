@@ -10,6 +10,7 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color-scheme: dark;
         }
 
         body {
@@ -99,13 +100,21 @@
             color: #55524b;
         }
 
+        /* Icono de calendario dorado */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8) sepia(100%) saturate(400%) hue-rotate(5deg);
+            cursor: pointer;
+            opacity: 0.9;
+            padding: 2px;
+        }
+
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        /* Indicador en tiempo real del saldo */
+        /* Resumen de saldo */
         .balance-card {
             background: rgba(212, 175, 55, 0.08);
             border: 1px dashed rgba(212, 175, 55, 0.35);
@@ -129,7 +138,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Botón dorado metálico */
+        /* Botón de acción dorado */
         button {
             width: 100%;
             padding: 14px;
@@ -156,6 +165,27 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        /* Enlace de respaldo por si el navegador bloquea la pestaña */
+        .calendar-fallback {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background: #191920;
+            border: 1px solid #d4af37;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .calendar-fallback a {
+            color: #ffd700;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .footer {
@@ -189,12 +219,12 @@
 
             <div class="form-group">
                 <label for="fechaEvento">Fecha del evento</label>
-                <input type="date" id="fechaEvento" required>
+                <input type="date" id="fechaEvento" onclick="this.showPicker()" required>
             </div>
 
             <div class="form-group">
                 <label for="lugarEvento">Lugar y hora del evento</label>
-                <input type="text" id="lugarEvento" placeholder="Ej. Salón Kids Zone - 10:50 am" required>
+                <input type="text" id="lugarEvento" placeholder="Ej. Salón Kids Zone 10:50 am" required>
             </div>
 
             <div class="grid-2">
@@ -216,6 +246,12 @@
             <button type="submit" id="btnGenerar">Generar contrato</button>
         </form>
 
+        <div class="calendar-fallback" id="calendarFallback">
+            <a id="calendarLinkDirect" target="_blank" rel="noopener noreferrer">
+                📅 Si no se abrió solo, toca aquí para abrir Google Calendar
+            </a>
+        </div>
+
         <div class="footer">Sistema automático de contratos</div>
     </div>
 
@@ -225,10 +261,49 @@
             const anticipo = parseFloat(document.getElementById("anticipo").value) || 0;
             const saldo = Math.max(0, precio - anticipo);
             document.getElementById("saldoText").textContent = "\$" + saldo.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " MXN";
+            return saldo;
+        }
+
+        function construirUrlGoogleCalendar(nombre, servicio, fecha, lugar, precio, anticipo, saldo) {
+            const cleanFecha = fecha.replace(/-/g, "");
+            let horaInicio = "120000";
+            let horaFin = "150000";
+
+            // Si el usuario escribe la hora en el texto (ej. 10:50 am)
+            const matchHora = lugar.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+            if (matchHora) {
+                let h = parseInt(matchHora[1], 10);
+                const m = matchHora[2];
+                const ampm = matchHora[3] ? matchHora[3].toLowerCase() : null;
+                if (ampm === "pm" && h < 12) h += 12;
+                if (ampm === "am" && h === 12) h = 0;
+                const startH = String(h).padStart(2, "0");
+                const endH = String((h + 3) % 24).padStart(2, "0"); // 3 horas de evento
+                horaInicio = `${startH}${m}00`;
+                horaFin = `${endH}${m}00`;
+            }
+
+            const startDateTime = `${cleanFecha}T${horaInicio}`;
+            const endDateTime = `${cleanFecha}T${horaFin}`;
+
+            const titulo = `Ohana: ${servicio} - ${nombre}`;
+            const descripcion = `CONTRATO OHANA SNACKS & TROLES\n\n` +
+                                `• Cliente: ${nombre}\n` +
+                                `• Servicio: ${servicio}\n` +
+                                `• Lugar: ${lugar}\n` +
+                                `• Total: $${precio} MXN\n` +
+                                `• Anticipo: $${anticipo} MXN\n` +
+                                `• Saldo pendiente: $${saldo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`;
+
+            const baseUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+            return `${baseUrl}&text=${encodeURIComponent(titulo)}&dates=${startDateTime}/${endDateTime}&location=${encodeURIComponent(lugar)}&details=${encodeURIComponent(descripcion)}`;
         }
 
         async function generarContrato() {
             const btn = document.getElementById("btnGenerar");
+            const fallbackBox = document.getElementById("calendarFallback");
+            const fallbackLink = document.getElementById("calendarLinkDirect");
+
             const nombre = document.getElementById("nombre").value.trim();
             const servicio = document.getElementById("servicio").value.trim();
             const fechaEvento = document.getElementById("fechaEvento").value;
@@ -241,8 +316,15 @@
                 return;
             }
 
+            const saldo = calcularSaldo();
+            const calendarUrl = construirUrlGoogleCalendar(nombre, servicio, fechaEvento, lugarEvento, precio, anticipo, saldo);
+
+            // Abrimos la pestaña INMEDIATAMENTE al hacer clic para que Chrome no la bloquee
+            const calendarTab = window.open("about:blank", "_blank");
+
             btn.disabled = true;
             btn.textContent = "Generando contrato...";
+            fallbackBox.style.display = "none";
 
             try {
                 const response = await fetch("/generate", {
@@ -264,6 +346,7 @@
                     throw new Error("Error al generar el contrato");
                 }
 
+                // Descargar el PDF
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -276,8 +359,18 @@
                 a.click();
                 a.remove();
                 window.URL.revokeObjectURL(url);
+
+                // Redirigir la pestaña que ya abrimos directo a Google Calendar
+                if (calendarTab) {
+                    calendarTab.location.href = calendarUrl;
+                } else {
+                    fallbackLink.href = calendarUrl;
+                    fallbackBox.style.display = "block";
+                }
+
             } catch (err) {
                 console.error(err);
+                if (calendarTab) calendarTab.close();
                 alert("Hubo un error al generar el contrato. Revisa la conexión o el servidor.");
             } finally {
                 btn.disabled = false;
