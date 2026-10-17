@@ -9,12 +9,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-app.post("/generate", (req, res) => {
+// Helper para formatear fecha a español (ej. "2026-09-20" -> "20 de septiembre de 2026")
+function formatearFechaEspanol(fechaStr) {
+  if (!fechaStr) return "";
+  const meses = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
+  const partes = fechaStr.split("-");
+  if (partes.length === 3) {
+    const anio = partes[0];
+    const mesIndex = parseInt(partes[1], 10) - 1;
+    const dia = parseInt(partes[2], 10);
+    return `${dia} de ${meses[mesIndex]} de ${anio}`;
+  }
+  return fechaStr;
+}
 
+// Helper para poner mayúsculas iniciales a nombres
+function capitalizarTexto(str) {
+  if (!str) return "";
+  return str.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase());
+}
+
+app.post("/generate", (req, res) => {
   console.log(req.body);
 
   const { nombre, servicio, fechaEvento, lugarEvento, precio, anticipo } = req.body;
-  const doc = new PDFDocument({ margin: 70 });
+  const doc = new PDFDocument({ margin: 70, size: "LETTER" });
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", "attachment; filename=contrato.pdf");
@@ -24,233 +46,210 @@ app.post("/generate", (req, res) => {
   // =========================
   // 🔷 HEADER
   // =========================
-  
+  doc.rect(0, 0, 612, 100).fill("#1e293b");
 
-// HEADER
-doc.rect(0, 0, 612, 100).fill("#1e293b");
+  // ==============================
+  // 🔶 MARCO AJUSTADO
+  // ==============================
+  doc.strokeColor("#d4af37");
+  const topMargin = 110;
 
-// ==============================
-// 🔶 MARCO AJUSTADO (NO TOCA HEADER)
-// ==============================
+  // Marco exterior
+  doc.lineWidth(2);
+  doc.rect(40, topMargin, 532, 645).stroke();
 
-doc.strokeColor("#d4af37");
+  // Marco interior
+  doc.lineWidth(0.5);
+  doc.rect(48, topMargin + 8, 516, 629).stroke();
 
-// Inicia debajo del header (header mide 100px aprox)
-const topMargin = 110;
+  // Esquinas decorativas ajustadas
+  doc.lineWidth(1);
+  doc.moveTo(40, topMargin + 30).lineTo(70, topMargin).stroke();
+  doc.moveTo(542, topMargin).lineTo(572, topMargin + 30).stroke();
+  doc.moveTo(40, 725).lineTo(70, 755).stroke();
+  doc.moveTo(542, 755).lineTo(572, 725).stroke();
 
-// Marco exterior
-doc.lineWidth(2);
-doc.rect(40, topMargin, 532, 742 - (topMargin - 40)).stroke();
-
-
-// Marco interior
-doc.lineWidth(0.5);
-doc.rect(50, topMargin + 10, 512, 722 - (topMargin - 40)).stroke();
-
-// Esquinas decorativas ajustadas
-doc.lineWidth(1);
-
-// Superior izquierda
-doc.moveTo(40, topMargin + 40).lineTo(80, topMargin).stroke();
-
-// Superior derecha
-doc.moveTo(552, topMargin).lineTo(572, topMargin + 40).stroke();
-
-// Inferior izquierda
-doc.moveTo(40, 742).lineTo(80, 782).stroke();
-
-// Inferior derecha
-doc.moveTo(552, 782).lineTo(572, 742).stroke();
-
-  
-// Logo derecha
+  // Logo derecha
   const logoWidth = 70;
-  const logoX = 612 - logoWidth - 30;
+  const logoX = 612 - logoWidth - 35;
   const logoY = 15;
 
   doc.image(__dirname + "/logo.png", logoX, logoY, {
     width: logoWidth,
   });
 
-  // Texto empresa
+  // Texto empresa en header
   doc.fillColor("white")
     .fontSize(14)
-    .text("OHANA SNACKS & TROLES", 50, 30);
+    .font("Helvetica-Bold")
+    .text("OHANA SNACKS & TROLES", 55, 32);
 
   doc.fontSize(10)
-    .text("Tel: 833-193-5768", 50, 50);
+    .font("Helvetica")
+    .text("Tel: 833-193-5768", 55, 52);
 
-  // =========================
-  // 🔥 MARCA DE AGUA
-  // =========================
- // ============================
-// ◇ MARCA DE AGUA PREMIUM
-// ============================
-// ==============================
-// 🔷 MARCA DE AGUA CENTRADA PRO
-// ==============================
-
-doc.save();
-
-// Opacidad más visible pero elegante
-doc.opacity(0.18);
-
-// Imagen centrada (ajustada a hoja carta)
-doc.image(__dirname + "/logo.png", 130, 220, {
-  width: 350,
-  align: "center"
-});
-
-// Restaurar estado normal
-doc.restore();
-doc.opacity(1);
-
- doc.moveDown(2);
-// Línea superior
-doc.moveTo(100, 90)
-  .lineTo(512, 90)
-  .stroke("#d4af37");
-
-const tituloY = 130;
-
-doc.moveTo(80, tituloY)
-   .lineTo(530, tituloY)
-   .stroke("#d4af37");
-
-doc.fillColor("#1e293b")
-  .fontSize(16)
-  .text("CONTRATO DE PRESTACIÓN DE SERVICIOS", 0, 118, {
-    width: 612,
+  // ==============================
+  // 🔷 MARCA DE AGUA ELEGANTE
+  // ==============================
+  doc.save();
+  doc.opacity(0.10);
+  doc.image(__dirname + "/logo.png", 146, 260, {
+    width: 320,
     align: "center"
   });
+  doc.restore();
+  doc.opacity(1);
 
-doc.moveTo(80, 145)
-   .lineTo(530, 145)
-   .stroke("#d4af37");
+  // Título del documento
+  const tituloY = 125;
+  doc.moveTo(70, tituloY)
+    .lineTo(542, tituloY)
+    .stroke("#d4af37");
 
-doc.y = tituloY + 60;
+  doc.fillColor("#1e293b")
+    .fontSize(14)
+    .font("Helvetica-Bold")
+    .text("CONTRATO DE PRESTACIÓN DE SERVICIOS", 0, 132, {
+      width: 612,
+      align: "center"
+    });
 
-doc.moveDown();
+  doc.moveTo(70, 152)
+    .lineTo(542, 152)
+    .stroke("#d4af37");
 
   // =========================
-  // 🔷 DATOS
+  // 🔷 FOLIO Y FECHA FORMAL
   // =========================
-  const fecha = new Date().toLocaleDateString();
+  const ahora = new Date();
+  const yyyy = ahora.getFullYear();
+  const mm = String(ahora.getMonth() + 1).padStart(2, "0");
+  const dd = String(ahora.getDate()).padStart(2, "0");
+  const randNum = String(Math.floor(100 + Math.random() * 900));
+  const folioOha = `OHA-${yyyy}${mm}${dd}-${randNum}`;
 
-  doc.fillColor("black")
-  .fontSize(10)
-  .text(`Folio: ${Date.now()}`, 60, 150);
+  const fechaEmisionTexto = formatearFechaEspanol(`${yyyy}-${mm}-${dd}`);
+  const fechaEventoTexto = formatearFechaEspanol(fechaEvento);
 
-doc.text(`Fecha: ${fecha}`, 60, doc.y);
+  doc.font("Helvetica");
+  doc.fillColor("#1e293b")
+    .fontSize(9)
+    .text(`Folio: ${folioOha}`, 60, 165);
 
-  doc.moveDown();
+  doc.text(`Fecha de emisión: ${fechaEmisionTexto}`, 60, 178);
 
-doc.text(
-`EL PRESENTE CONTRATO SE CELEBRA ENTRE OHANA SNACKS&TROLES, EN LO SUCESIVO "EL PRESTADOR", Y EL CLIENTE, BAJO LOS SIGUIENTES TÉRMINOS:`
-);
+  doc.moveDown(0.8);
 
-  doc.moveDown();
-doc.text("Cliente: " + nombre, 60, doc.y);
-doc.text("Servicio: " + servicio, 60, doc.y);
-doc.text("Fecha del evento: " + fechaEvento, 60, doc.y);
-doc.text("Lugar del evento: " + lugarEvento, 60, doc.y);
-const precioMXN = Number(precio).toLocaleString('es-MX');
-const anticipoMXN = Number(anticipo).toLocaleString('es-MX');
-const restante = Number(precio) - Number(anticipo);
-const restanteMXN = Number(restante).toLocaleString('es-MX');
+  doc.fontSize(8.5)
+    .text(
+      'EL PRESENTE CONTRATO SE CELEBRA ENTRE OHANA SNACKS & TROLES, EN LO SUCESIVO "EL PRESTADOR", Y EL CLIENTE, BAJO LOS SIGUIENTES TÉRMINOS:',
+      60,
+      doc.y,
+      { width: 492, align: "justify" }
+    );
 
-doc.text("Precio total: $" + precio, 60, doc.y);
-doc.text("Anticipo: $" + anticipo, 60, doc.y);
-doc.text(`Pendiente por liquidar: $${restanteMXN}`);
+  doc.moveDown(0.6);
 
-doc.moveDown();
+  // Datos del Cliente y Servicio
+  const clienteFormateado = capitalizarTexto(nombre);
+  const precioNum = Number(precio) || 0;
+  const anticipoNum = Number(anticipo) || 0;
+  const restanteNum = Math.max(0, precioNum - anticipoNum);
 
-  doc.fontSize(10);
+  const precioMXN = precioNum.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const anticipoMXN = anticipoNum.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const restanteMXN = restanteNum.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  doc.text("PRIMERA. OBJETO");
-  doc.text("EL PRESTADOR se compromete a brindar el servicio contratado.");
-  doc.moveDown();
+  doc.fontSize(9);
+  doc.font("Helvetica-Bold").text("Cliente: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(clienteFormateado);
 
-  doc.text("SEGUNDA. FECHA Y LUGAR");
-  doc.text("El servicio se realizará en la fecha y ubicación acordadas.");
-  doc.moveDown();
+  doc.font("Helvetica-Bold").text("Servicio: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(servicio);
 
-  doc.text("TERCERA. ANTICIPO");
-  doc.text("El cliente deberá pagar un anticipo para reservar la fecha.");
-  doc.moveDown();
+  doc.font("Helvetica-Bold").text("Fecha del evento: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(fechaEventoTexto);
 
-  // ============================
-// ◇ CUARTA
-// ============================
-doc.moveDown();
+  doc.font("Helvetica-Bold").text("Lugar del evento: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(lugarEvento);
 
-doc.fontSize(11).text("CUARTA. PAGO RESTANTE");
+  doc.font("Helvetica-Bold").text("Precio total: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(`$${precioMXN} MXN`);
 
-doc.fontSize(10).text(
-"El saldo restante deberá ser liquidado conforme a las siguientes condiciones:",
-{ width: 500, align: "justify" }
-);
+  doc.font("Helvetica-Bold").text("Anticipo: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(`$${anticipoMXN} MXN`);
 
-doc.text(
-"a) En caso de pago en efectivo, deberá cubrirse en su totalidad antes del inicio del evento.",
-{ width: 500, align: "justify" }
-);
-doc.moveDown(0.5);
-doc.text(
-"b) En caso de pago mediante transferencia electrónica, el monto total deberá liquidarse con al menos un (1) día hábil de anticipación a la fecha del evento, considerando posibles tiempos de procesamiento o retención por parte de las instituciones bancarias.",
-{ width: 500, align: "justify" }
-);
+  doc.font("Helvetica-Bold").text("Pendiente por liquidar: ", 60, doc.y, { continued: true })
+     .font("Helvetica").text(`$${restanteMXN} MXN`);
 
-doc.text(
-"El incumplimiento de estas condiciones podrá dar lugar a la suspensión o cancelación del servicio por parte de EL PRESTADOR.",
-{ width: 500, align: "justify" }
-);
+  doc.moveDown(0.8);
 
+  // =========================
+  // 🔷 CLÁUSULAS
+  // =========================
+  doc.fontSize(9);
 
-// ============================
-// ◇ QUINTA
-// ============================
-doc.moveDown();
+  doc.font("Helvetica-Bold").text("PRIMERA. OBJETO");
+  doc.font("Helvetica").text("EL PRESTADOR se compromete a brindar el servicio contratado en las condiciones pactadas.", { width: 492, align: "justify" });
+  doc.moveDown(0.4);
 
-doc.fontSize(11).text("QUINTA. CANCELACIONES Y CAMBIOS");
+  doc.font("Helvetica-Bold").text("SEGUNDA. FECHA Y LUGAR");
+  doc.font("Helvetica").text("El servicio se realizará en la fecha, horario y ubicación acordadas por ambas partes.", { width: 492, align: "justify" });
+  doc.moveDown(0.4);
 
-doc.fontSize(10).text(
-"En caso de cancelación por parte del CLIENTE, el anticipo no será reembolsado.",
-{ width: 500, align: "justify" }
-);
+  doc.font("Helvetica-Bold").text("TERCERA. ANTICIPO");
+  doc.font("Helvetica").text("El cliente deberá cubrir un anticipo para reservar formalmente la fecha del evento.", { width: 492, align: "justify" });
+  doc.moveDown(0.4);
 
-doc.text(
-"Cualquier cambio de fecha estará sujeto a disponibilidad.",
-{ width: 500, align: "justify" }
-);
+  doc.font("Helvetica-Bold").text("CUARTA. PAGO RESTANTE");
+  doc.font("Helvetica").text(
+    "El saldo restante deberá ser liquidado conforme a las siguientes condiciones:\n" +
+    "a) En efectivo: deberá cubrirse en su totalidad antes del inicio del evento.\n" +
+    "b) Por transferencia electrónica: deberá liquidarse con al menos un (1) día hábil de anticipación al evento.\n" +
+    "El incumplimiento dará lugar a la suspensión o cancelación del servicio por parte de EL PRESTADOR.",
+    { width: 492, align: "justify" }
+  );
+  doc.moveDown(0.4);
 
-  doc.text("SEXTA. RESPONSABILIDAD");
-  doc.moveDown();
-  doc.text("El prestador no se hace responsable por causas externas.");
-  doc.moveDown(0,5);
+  doc.font("Helvetica-Bold").text("QUINTA. CANCELACIONES Y CAMBIOS");
+  doc.font("Helvetica").text(
+    "En caso de cancelación por parte de EL CLIENTE, el anticipo no será reembolsado. Cualquier cambio de fecha estará estrictamente sujeto a disponibilidad de agenda.",
+    { width: 492, align: "justify" }
+  );
+  doc.moveDown(0.4);
 
-  doc.text("SÉPTIMA. ACEPTACIÓN");
-  doc.text("Ambas partes aceptan los términos del presente contrato.");
-  doc.moveDown(0,5);
+  doc.font("Helvetica-Bold").text("SEXTA. RESPONSABILIDAD Y CASO FORTUITO");
+  doc.font("Helvetica").text(
+    "EL PRESTADOR no será responsable por interrupciones o retrasos debidos a causas de fuerza mayor o ajenas a su control (tales como fallas en el suministro eléctrico del salón o inmueble, condiciones meteorológicas extremas o impedimentos de acceso al recinto).",
+    { width: 492, align: "justify" }
+  );
+  doc.moveDown(0.4);
 
- 
+  doc.font("Helvetica-Bold").text("SÉPTIMA. ACEPTACIÓN");
+  doc.font("Helvetica").text("Ambas partes aceptan y se comprometen a cumplir los términos del presente contrato.", { width: 492, align: "justify" });
+  doc.moveDown(0.8);
+
   // =========================
   // 🔷 FIRMAS
   // =========================
-  doc.fontSize(10).text("FIRMAS", { underline: true });
+  doc.font("Helvetica-Bold").fontSize(9).text("FIRMAS DE CONFORMIDAD", { align: "center", width: 612 });
+  doc.moveDown(1.5);
 
-  doc.moveDown(2);
+  const firmasY = doc.y;
+  doc.font("Helvetica").fontSize(8.5);
 
-  doc.text("EL PRESTADOR: ____________________________", 50);
-  doc.moveDown();
-  doc.text("EL CLIENTE: _______________________________", 50);
+  // Firma Prestador (Izquierda)
+  doc.text("___________________________________", 80, firmasY, { width: 200, align: "center" });
+  doc.text("EL PRESTADOR", 80, firmasY + 14, { width: 200, align: "center" });
 
-  // =========================
-  // FINAL
-  // =========================
+  // Firma Cliente (Derecha)
+  doc.text("___________________________________", 332, firmasY, { width: 200, align: "center" });
+  doc.text("EL CLIENTE", 332, firmasY + 14, { width: 200, align: "center" });
+
   doc.end();
 });
 
-app.listen(3000, () => {
-  console.log("Servidor corriendo en http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
