@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Contratos | Ohana Snacks & Troles</title>
+    <!-- Favicon con tu logo dorado -->
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
     <style>
         * {
             box-sizing: border-box;
@@ -26,7 +29,7 @@
         .container {
             background: #141418;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             padding: 32px 24px;
             border-radius: 20px;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.08);
@@ -138,8 +141,8 @@
             letter-spacing: 0.5px;
         }
 
-        /* Botón de acción dorado */
-        button {
+        /* Botón dorado principal */
+        .btn-primary {
             width: 100%;
             padding: 14px;
             background: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #aa820a 100%);
@@ -155,37 +158,68 @@
             letter-spacing: 0.5px;
         }
 
-        button:hover:not(:disabled) {
+        .btn-primary:hover:not(:disabled) {
             filter: brightness(1.1);
             transform: translateY(-1px);
             box-shadow: 0 6px 22px rgba(212, 175, 55, 0.5);
         }
 
-        button:disabled {
+        .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
-        /* Enlace de respaldo por si el navegador bloquea la pestaña */
-        .calendar-fallback {
+        /* Caja de acciones posteriores (WhatsApp + Calendario) */
+        .actions-card {
             display: none;
-            margin-top: 15px;
-            padding: 12px;
-            background: #191920;
-            border: 1px solid #d4af37;
-            border-radius: 10px;
+            margin-top: 18px;
+            padding: 16px;
+            background: #181820;
+            border: 1px solid #3c3826;
+            border-radius: 12px;
             text-align: center;
         }
 
-        .calendar-fallback a {
+        .actions-title {
+            color: #2ed573;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .btn-whatsapp {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: #25D366;
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .btn-whatsapp:hover {
+            background: #20ba59;
+            transform: translateY(-1px);
+        }
+
+        .btn-calendar-link {
             color: #ffd700;
             text-decoration: none;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-block;
+            margin-top: 4px;
         }
 
         .footer {
@@ -213,8 +247,13 @@
             </div>
 
             <div class="form-group">
+                <label for="telefono">WhatsApp del cliente (opcional)</label>
+                <input type="tel" id="telefono" placeholder="10 dígitos (ej. 833 123 4567)">
+            </div>
+
+            <div class="form-group">
                 <label for="servicio">Servicio / Paquete</label>
-                <input type="text" id="servicio" placeholder="Ej. 70 snacks (10 vasos personalizados)" required>
+                <input type="text" id="servicio" placeholder="Ej. 70 troles (10 vasos personalizados)" required>
             </div>
 
             <div class="form-group">
@@ -243,12 +282,17 @@
                 <span class="balance-amount" id="saldoText">\$0.00 MXN</span>
             </div>
 
-            <button type="submit" id="btnGenerar">Generar contrato</button>
+            <button type="submit" id="btnGenerar" class="btn-primary">Generar contrato</button>
         </form>
 
-        <div class="calendar-fallback" id="calendarFallback">
-            <a id="calendarLinkDirect" target="_blank" rel="noopener noreferrer">
-                📅 Si no se abrió solo, toca aquí para abrir Google Calendar
+        <!-- Tarjeta de acciones rápidas tras generar -->
+        <div class="actions-card" id="actionsCard">
+            <div class="actions-title">✓ ¡Contrato generado y descargado con éxito!</div>
+            <a id="btnWhatsApp" class="btn-whatsapp" target="_blank" rel="noopener noreferrer">
+                📲 Enviar resumen por WhatsApp
+            </a>
+            <a id="btnCalendarDirect" class="btn-calendar-link" target="_blank" rel="noopener noreferrer">
+                📅 Volver a abrir en Google Calendar
             </a>
         </div>
 
@@ -264,12 +308,24 @@
             return saldo;
         }
 
+        function formatearFechaTexto(fechaStr) {
+            if (!fechaStr) return "";
+            const meses = [
+                "enero", "febrero", "marzo", "abril", "mayo", "junio",
+                "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+            ];
+            const partes = fechaStr.split("-");
+            if (partes.length === 3) {
+                return `${parseInt(partes[2], 10)} de ${meses[parseInt(partes[1], 10) - 1]} de ${partes[0]}`;
+            }
+            return fechaStr;
+        }
+
         function construirUrlGoogleCalendar(nombre, servicio, fecha, lugar, precio, anticipo, saldo) {
             const cleanFecha = fecha.replace(/-/g, "");
             let horaInicio = "120000";
             let horaFin = "150000";
 
-            // Si el usuario escribe la hora en el texto (ej. 10:50 am)
             const matchHora = lugar.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
             if (matchHora) {
                 let h = parseInt(matchHora[1], 10);
@@ -278,7 +334,7 @@
                 if (ampm === "pm" && h < 12) h += 12;
                 if (ampm === "am" && h === 12) h = 0;
                 const startH = String(h).padStart(2, "0");
-                const endH = String((h + 3) % 24).padStart(2, "0"); // 3 horas de evento
+                const endH = String((h + 3) % 24).padStart(2, "0");
                 horaInicio = `${startH}${m}00`;
                 horaFin = `${endH}${m}00`;
             }
@@ -293,18 +349,46 @@
                                 `• Lugar: ${lugar}\n` +
                                 `• Total: $${precio} MXN\n` +
                                 `• Anticipo: $${anticipo} MXN\n` +
-                                `• Saldo pendiente: $${saldo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`;
+                                `• Pendiente: $${saldo.toLocaleString("es-MX", { minimumFractionDigits: 2 })} MXN`;
 
             const baseUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE";
             return `${baseUrl}&text=${encodeURIComponent(titulo)}&dates=${startDateTime}/${endDateTime}&location=${encodeURIComponent(lugar)}&details=${encodeURIComponent(descripcion)}`;
         }
 
+        function construirUrlWhatsApp(telefono, nombre, servicio, fecha, lugar, precio, anticipo, saldo) {
+            const fechaFormateada = formatearFechaTexto(fecha);
+            const precioFmt = Number(precio).toLocaleString("es-MX", { minimumFractionDigits: 2 });
+            const anticipoFmt = Number(anticipo).toLocaleString("es-MX", { minimumFractionDigits: 2 });
+            const saldoFmt = saldo.toLocaleString("es-MX", { minimumFractionDigits: 2 });
+
+            const mensaje = `¡Hola *${nombre}*! 👋\n\n` +
+                            `Te confirmo la reserva de tu servicio con *Ohana Snacks & Troles* 🍧:\n\n` +
+                            `📋 *Servicio:* ${servicio}\n` +
+                            `📅 *Fecha:* ${fechaFormateada}\n` +
+                            `📍 *Lugar:* ${lugar}\n` +
+                            `💰 *Total:* $${precioFmt} MXN\n` +
+                            `💵 *Anticipo recibido:* $${anticipoFmt} MXN\n` +
+                            `⚠️ *Saldo pendiente:* $${saldoFmt} MXN\n\n` +
+                            `Acabo de generarte tu contrato formal en PDF. ¡Muchas gracias por tu preferencia y nos vemos en tu evento! 🎉`;
+
+            const cleanTel = telefono ? telefono.replace(/\D/g, "") : "";
+            const phoneParam = cleanTel.length === 10 ? `52${cleanTel}` : cleanTel;
+
+            if (phoneParam) {
+                return `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encodeURIComponent(mensaje)}`;
+            } else {
+                return `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+            }
+        }
+
         async function generarContrato() {
             const btn = document.getElementById("btnGenerar");
-            const fallbackBox = document.getElementById("calendarFallback");
-            const fallbackLink = document.getElementById("calendarLinkDirect");
+            const actionsCard = document.getElementById("actionsCard");
+            const btnWhatsApp = document.getElementById("btnWhatsApp");
+            const btnCalendarDirect = document.getElementById("btnCalendarDirect");
 
             const nombre = document.getElementById("nombre").value.trim();
+            const telefono = document.getElementById("telefono").value.trim();
             const servicio = document.getElementById("servicio").value.trim();
             const fechaEvento = document.getElementById("fechaEvento").value;
             const lugarEvento = document.getElementById("lugarEvento").value.trim();
@@ -318,13 +402,14 @@
 
             const saldo = calcularSaldo();
             const calendarUrl = construirUrlGoogleCalendar(nombre, servicio, fechaEvento, lugarEvento, precio, anticipo, saldo);
+            const whatsappUrl = construirUrlWhatsApp(telefono, nombre, servicio, fechaEvento, lugarEvento, precio, anticipo, saldo);
 
-            // Abrimos la pestaña INMEDIATAMENTE al hacer clic para que Chrome no la bloquee
+            // Abre pestaña previa para que el navegador no bloquee Google Calendar
             const calendarTab = window.open("about:blank", "_blank");
 
             btn.disabled = true;
             btn.textContent = "Generando contrato...";
-            fallbackBox.style.display = "none";
+            actionsCard.style.display = "none";
 
             try {
                 const response = await fetch("/generate", {
@@ -346,7 +431,6 @@
                     throw new Error("Error al generar el contrato");
                 }
 
-                // Descargar el PDF
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
@@ -360,13 +444,15 @@
                 a.remove();
                 window.URL.revokeObjectURL(url);
 
-                // Redirigir la pestaña que ya abrimos directo a Google Calendar
+                // Redirige la pestaña a Google Calendar
                 if (calendarTab) {
                     calendarTab.location.href = calendarUrl;
-                } else {
-                    fallbackLink.href = calendarUrl;
-                    fallbackBox.style.display = "block";
                 }
+
+                // Configurar botones en la tarjeta de confirmación
+                btnWhatsApp.href = whatsappUrl;
+                btnCalendarDirect.href = calendarUrl;
+                actionsCard.style.display = "block";
 
             } catch (err) {
                 console.error(err);
