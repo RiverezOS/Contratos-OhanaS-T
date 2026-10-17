@@ -56,18 +56,18 @@ app.post("/generate", (req, res) => {
 
   // Marco exterior
   doc.lineWidth(2);
-  doc.rect(40, topMargin, 532, 652).stroke();
+  doc.rect(40, topMargin, 532, 650).stroke();
 
   // Marco interior
   doc.lineWidth(0.5);
-  doc.rect(48, topMargin + 8, 516, 636).stroke();
+  doc.rect(48, topMargin + 8, 516, 634).stroke();
 
   // Esquinas decorativas
   doc.lineWidth(1);
   doc.moveTo(40, topMargin + 30).lineTo(70, topMargin).stroke();
   doc.moveTo(542, topMargin).lineTo(572, topMargin + 30).stroke();
-  doc.moveTo(40, 730).lineTo(70, 760).stroke();
-  doc.moveTo(542, 760).lineTo(572, 730).stroke();
+  doc.moveTo(40, 728).lineTo(70, 758).stroke();
+  doc.moveTo(542, 758).lineTo(572, 728).stroke();
 
   // Logo derecha
   const logoWidth = 70;
@@ -92,8 +92,8 @@ app.post("/generate", (req, res) => {
   // 🔷 MARCA DE AGUA
   // ==============================
   doc.save();
-  doc.opacity(0.09);
-  doc.image(__dirname + "/logo.png", 146, 265, {
+  doc.opacity(0.08);
+  doc.image(__dirname + "/logo.png", 146, 275, {
     width: 320,
     align: "center"
   });
@@ -101,18 +101,18 @@ app.post("/generate", (req, res) => {
   doc.opacity(1);
 
   // Título del documento
-  const tituloY = 120;
+  const tituloY = 118;
   doc.moveTo(70, tituloY).lineTo(542, tituloY).stroke("#d4af37");
 
   doc.fillColor("#1e293b")
     .fontSize(13)
     .font("Helvetica-Bold")
-    .text("CONTRATO DE PRESTACIÓN DE SERVICIOS", 0, 126, {
+    .text("CONTRATO DE PRESTACIÓN DE SERVICIOS", 0, 124, {
       width: 612,
       align: "center"
     });
 
-  doc.moveTo(70, 144).lineTo(542, 144).stroke("#d4af37");
+  doc.moveTo(70, 142).lineTo(542, 142).stroke("#d4af37");
 
   // =========================
   // 🔷 FOLIO Y FECHA (Hora local México)
@@ -131,15 +131,15 @@ app.post("/generate", (req, res) => {
   doc.font("Helvetica");
   doc.fillColor("#1e293b")
     .fontSize(8.5)
-    .text(`Folio: ${folioOha}`, 60, 154);
+    .text(`Folio: ${folioOha}`, 60, 150);
 
-  doc.text(`Fecha de emisión: ${fechaEmisionTexto}`, 60, 166);
+  doc.text(`Fecha de emisión: ${fechaEmisionTexto}`, 60, 161);
 
   doc.fontSize(8)
     .text(
       'EL PRESENTE CONTRATO SE CELEBRA ENTRE OHANA SNACKS & TROLES, EN LO SUCESIVO "EL PRESTADOR", Y EL CLIENTE, BAJO LOS SIGUIENTES TÉRMINOS:',
       60,
-      180,
+      174,
       { width: 492, align: "justify" }
     );
 
@@ -153,33 +153,50 @@ app.post("/generate", (req, res) => {
   const anticipoMXN = anticipoNum.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const restanteMXN = restanteNum.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  doc.y = 198;
+  doc.y = 191;
   doc.fontSize(8.5);
 
   doc.font("Helvetica-Bold").text("Cliente: ", 60, doc.y, { continued: true }).font("Helvetica").text(clienteFormateado);
   doc.font("Helvetica-Bold").text("Servicio: ", 60, doc.y, { continued: true }).font("Helvetica").text(servicio);
   doc.font("Helvetica-Bold").text("Fecha del evento: ", 60, doc.y, { continued: true }).font("Helvetica").text(fechaEventoTexto);
   doc.font("Helvetica-Bold").text("Lugar del evento: ", 60, doc.y, { continued: true }).font("Helvetica").text(lugarEvento);
-  doc.font("Helvetica-Bold").text("Precio total: ", 60, doc.y, { continued: true }).font("Helvetica").text(`$${precioMXN} MXN`);
-  doc.font("Helvetica-Bold").text("Anticipo: ", 60, doc.y, { continued: true }).font("Helvetica").text(`$${anticipoMXN} MXN`);
-  doc.font("Helvetica-Bold").text("Pendiente por liquidar: ", 60, doc.y, { continued: true }).font("Helvetica").text(`$${restanteMXN} MXN`);
 
-  doc.moveDown(0.5);
+  // ==========================================
+  // 🔶 CAJA DESTACADA DE RESUMEN ECONÓMICO
+  // ==========================================
+  const boxY = doc.y + 6;
+  doc.save();
+  doc.lineWidth(1);
+  doc.roundedRect(60, boxY, 492, 34, 4).fillAndStroke("#fcfaf4", "#d4af37");
+
+  // Columna 1: Precio Total
+  doc.fillColor("#715814").fontSize(7.5).font("Helvetica-Bold").text("PRECIO TOTAL", 75, boxY + 6);
+  doc.fillColor("#1e293b").fontSize(9.5).font("Helvetica-Bold").text(`$${precioMXN} MXN`, 75, boxY + 18);
+
+  // Columna 2: Anticipo Pagado
+  doc.fillColor("#715814").fontSize(7.5).font("Helvetica-Bold").text("ANTICIPO RECIBIDO", 235, boxY + 6);
+  doc.fillColor("#1e293b").fontSize(9.5).font("Helvetica-Bold").text(`$${anticipoMXN} MXN`, 235, boxY + 18);
+
+  // Columna 3: Saldo Pendiente
+  doc.fillColor("#b45309").fontSize(7.5).font("Helvetica-Bold").text("PENDIENTE POR LIQUIDAR", 395, boxY + 6);
+  doc.fillColor("#b45309").fontSize(9.5).font("Helvetica-Bold").text(`$${restanteMXN} MXN`, 395, boxY + 18);
+  doc.restore();
+
+  doc.y = boxY + 42;
 
   // =========================
   // 🔷 CLÁUSULAS
   // =========================
-  doc.fontSize(8.5);
+  doc.fontSize(8.2);
 
   doc.font("Helvetica-Bold").text("PRIMERA. OBJETO");
   doc.font("Helvetica").text("EL PRESTADOR se compromete a brindar el servicio contratado en las condiciones pactadas.", { width: 492, align: "justify" });
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("SEGUNDA. FECHA Y LUGAR");
   doc.font("Helvetica").text("El servicio se realizará en la fecha, horario y ubicación acordadas por ambas partes.", { width: 492, align: "justify" });
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
-  // NUEVA CLÁUSULA ESPECÍFICA DE TÉCNICA Y MONTAJE
   doc.font("Helvetica-Bold").text("TERCERA. REQUERIMIENTOS DE INSTALACIÓN Y SERVICIO");
   doc.font("Helvetica").text(
     "Para garantizar la óptima calidad, temperatura y adecuada operación del carrito, EL CLIENTE se compromete a proporcionar:\n" +
@@ -188,42 +205,42 @@ app.post("/generate", (req, res) => {
     "EL PRESTADOR no será responsable por variaciones en la temperatura del producto ante fallas o falta de suministro eléctrico en el recinto.",
     { width: 492, align: "justify" }
   );
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("CUARTA. ANTICIPO");
   doc.font("Helvetica").text("El cliente deberá cubrir un anticipo para reservar formalmente la fecha del evento.", { width: 492, align: "justify" });
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("QUINTA. PAGO RESTANTE");
   doc.font("Helvetica").text(
     "El saldo restante deberá liquidarse conforme a lo siguiente: en efectivo antes de iniciar el evento, o por transferencia electrónica con al menos un (1) día hábil de anticipación. El incumplimiento dará lugar a la suspensión del servicio por parte de EL PRESTADOR.",
     { width: 492, align: "justify" }
   );
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("SEXTA. CANCELACIONES Y CAMBIOS");
   doc.font("Helvetica").text(
     "En caso de cancelación por parte de EL CLIENTE, el anticipo no será reembolsado. Cualquier cambio de fecha estará sujeto a disponibilidad de agenda.",
     { width: 492, align: "justify" }
   );
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("SÉPTIMA. RESPONSABILIDAD Y CASO FORTUITO");
   doc.font("Helvetica").text(
     "EL PRESTADOR no será responsable por retrasos o interrupciones atribuibles a causas de fuerza mayor (fallas generales de energía eléctrica del salón, condiciones climáticas extremas o restricciones de acceso al inmueble).",
     { width: 492, align: "justify" }
   );
-  doc.moveDown(0.25);
+  doc.moveDown(0.2);
 
   doc.font("Helvetica-Bold").text("OCTAVA. ACEPTACIÓN");
   doc.font("Helvetica").text("Ambas partes aceptan y se comprometen a cumplir los términos del presente contrato.", { width: 492, align: "justify" });
-  doc.moveDown(0.7);
+  doc.moveDown(0.6);
 
   // =========================
   // 🔷 FIRMAS
   // =========================
   doc.font("Helvetica-Bold").fontSize(8.5).text("FIRMAS DE CONFORMIDAD", { align: "center", width: 612 });
-  doc.moveDown(1.2);
+  doc.moveDown(1.1);
 
   const firmasY = doc.y;
   doc.font("Helvetica").fontSize(8);
@@ -235,6 +252,19 @@ app.post("/generate", (req, res) => {
   // Firma Cliente (Derecha)
   doc.text("___________________________________", 332, firmasY, { width: 200, align: "center" });
   doc.text("EL CLIENTE", 332, firmasY + 12, { width: 200, align: "center" });
+
+  // ==========================================
+  // 🔶 PIE DE PÁGINA INSTITUCIONAL
+  // ==========================================
+  doc.fontSize(7.5)
+    .font("Helvetica")
+    .fillColor("#64748b")
+    .text(
+      "Tampico • Cd. Madero • Altamira   |   WhatsApp: 833-193-5768   |   Ohana Snacks & Troles",
+      0,
+      742,
+      { align: "center", width: 612 }
+    );
 
   doc.end();
 });
